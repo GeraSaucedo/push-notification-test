@@ -53,10 +53,7 @@ class PushNotificationService {
      FirebaseMessaging.onMessage.listen(_onMessageHandler);
      FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedHandler);
 
-     print(token);
-
-      //Local notifications
-
+     //print(token);
   }
 
   /// is a good practice close streams to save memory, in this case we dont close the stream
