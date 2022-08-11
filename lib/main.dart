@@ -1,8 +1,11 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:push_notif_test/screens/home_screen.dart';
-import 'package:push_notif_test/screens/message_screen.dart';
-import 'package:push_notif_test/services/push_notifications_service.dart';
+
+import 'repositories/push_notification_repository/push_notification_repository.dart';
+import 'screens/home_screen.dart';
+import 'screens/message_screen.dart';
+import 'services/push_notifications_service.dart';
+
 
 void main() async { //Transform main to async
 
@@ -11,15 +14,25 @@ void main() async { //Transform main to async
     /// work cause widgets need to be initialized
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize push notification service 
-    await PushNotificationService.initializeApp();
-    
+    //Initialize firebase app
+    await Firebase.initializeApp();
 
-    runApp(const MyApp());
+    // Initialize push notification service 
+    final pushNotificationRepository = PushNotificationRepository();
+    await pushNotificationRepository.initializeApp();
+    
+    runApp(MyApp(
+      pushNotificationRepository: pushNotificationRepository,
+    ));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+
+  final PushNotificationRepository _pushNotificationRepository;
+
+  const MyApp({Key? key,
+    required PushNotificationRepository pushNotificationRepository
+  }) : _pushNotificationRepository = pushNotificationRepository, super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -29,15 +42,19 @@ class _MyAppState extends State<MyApp> {
 
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  late PushNotificationService _pushNotificationService; 
+              
   
 
   @override
   void initState() {
     super.initState();
 
+    _pushNotificationService = PushNotificationService(pushNotificationRepository: widget._pushNotificationRepository);
+
     // Get any messages which caused the application to open from
     // a terminated state.
-    PushNotificationService.messaging.getInitialMessage().then((RemoteMessage? message) {
+    _pushNotificationService.getInitialMessage().then((message) {
        if(message != null) {
            // Navigate to new page
           navigatorKey.currentState?.pushNamed('message', arguments: message.data['producto'] ?? 'No Data Initial');
@@ -45,7 +62,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     //suscribe to notification message stream 
-    PushNotificationService.messageStream.listen((message) {
+    _pushNotificationService.messageStream.listen((message) {
         
         // Navigate to new page
         navigatorKey.currentState?.pushNamed('message', arguments: message);
