@@ -35,6 +35,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+    // Get any messages which caused the application to open from
+    // a terminated state.
     PushNotificationService.messaging.getInitialMessage().then((RemoteMessage? message) {
        if(message != null) {
            // Navigate to new page
