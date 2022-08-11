@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:push_notif_test/screens/home_screen.dart';
 import 'package:push_notif_test/screens/message_screen.dart';
@@ -33,6 +34,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    PushNotificationService.messaging.getInitialMessage().then((RemoteMessage? message) {
+       if(message != null) {
+           // Navigate to new page
+          navigatorKey.currentState?.pushNamed('message', arguments: message.data['producto'] ?? 'No Data Initial');
+       }
+    });
 
     //suscribe to notification message stream 
     PushNotificationService.messageStream.listen((message) {
